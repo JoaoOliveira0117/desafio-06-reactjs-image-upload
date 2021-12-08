@@ -9,6 +9,8 @@ import { Loading } from '../components/Loading';
 import { Error } from '../components/Error';
 
 export default function Home(): JSX.Element {
+  const fetchImages = async ({ pageParam = 0 }) =>
+    await api.get('/api/images?after=' + pageParam);
   const {
     data,
     isLoading,
@@ -16,19 +18,28 @@ export default function Home(): JSX.Element {
     isFetchingNextPage,
     fetchNextPage,
     hasNextPage,
-  } = useInfiniteQuery('images', (query = null) => {
-    api
-      .get(`/api/images${query.pageParam ? '?after=' + query.pageParam : ''}`)
-      .catch(error => console.log(error));
+  } = useInfiniteQuery('images', fetchImages, {
+    getNextPageParam: ({ data }) => {
+      if (data.after) {
+        return data.after;
+      } else {
+        return null;
+      }
+    },
   });
 
   const formattedData = useMemo(() => {
-    // TODO FORMAT AND FLAT DATA ARRAY
+    const images = data?.pages[0].data;
+    return images?.data;
   }, [data]);
 
-  // TODO RENDER LOADING SCREEN
+  if (isLoading) {
+    return <Loading></Loading>;
+  }
 
-  // TODO RENDER ERROR SCREEN
+  if (isError) {
+    return <Error></Error>;
+  }
 
   return (
     <>
@@ -36,7 +47,15 @@ export default function Home(): JSX.Element {
 
       <Box maxW={1120} px={20} mx="auto" my={20}>
         <CardList cards={formattedData} />
-        {/* TODO RENDER LOAD MORE BUTTON IF DATA HAS NEXT PAGE */}
+        {hasNextPage && (
+          <>
+            {!isFetchingNextPage ? (
+              <Button onClick={() => fetchNextPage()}>Carregar mais</Button>
+            ) : (
+              <Box>Carregando...</Box>
+            )}
+          </>
+        )}
       </Box>
     </>
   );

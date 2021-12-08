@@ -20,8 +20,11 @@ export function FormAddImage({ closeModal }: FormAddImageProps): JSX.Element {
     image: {
       required: 'Arquivo obrigatório',
       validate: {
-        lessThan10MB: image => console.log(image),
-        acceptedFormats: image => console.log(image.type),
+        lessThan10MB: image =>
+          image[0].size < 10000000 || 'O arquivo deve ser menor que 10MB',
+        acceptedFormats: image =>
+          /\image\/png|\image\/jpeg|\image\/gif/.test(image[0].type) ||
+          'Somente são aceitos arquivos PNG, JPEG e GIF',
       },
     },
     title: {
@@ -112,19 +115,19 @@ export function FormAddImage({ closeModal }: FormAddImageProps): JSX.Element {
           setError={setError}
           trigger={trigger}
           error={errors.image}
-          {...register('image')}
+          {...register('image', formValidations.image)}
         />
 
         <TextInput
           placeholder="Título da imagem..."
           error={errors.title}
-          {...register('title')}
+          {...register('title', formValidations.title)}
         />
 
         <TextInput
           placeholder="Descrição da imagem..."
           error={errors.description}
-          {...register('description')}
+          {...register('description', formValidations.description)}
         />
       </Stack>
 
