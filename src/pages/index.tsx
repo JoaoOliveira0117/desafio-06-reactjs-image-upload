@@ -9,8 +9,15 @@ import { Loading } from '../components/Loading';
 import { Error } from '../components/Error';
 
 export default function Home(): JSX.Element {
-  const fetchImages = async ({ pageParam = 0 }) =>
-    await api.get('/api/images?after=' + pageParam);
+  const fetchImages = async param => {
+    const images = await api.get('/api/images', {
+      params: {
+        after: param.pageParam,
+      },
+    });
+
+    return images.data;
+  };
   const {
     data,
     isLoading,
@@ -19,18 +26,16 @@ export default function Home(): JSX.Element {
     fetchNextPage,
     hasNextPage,
   } = useInfiniteQuery('images', fetchImages, {
-    getNextPageParam: ({ data }) => {
-      if (data.after) {
-        return data.after;
-      } else {
-        return null;
-      }
+    getNextPageParam: (lastPage, pages) => {
+      const { after } = lastPage;
+
+      return after ? after : null;
     },
   });
 
   const formattedData = useMemo(() => {
-    const images = data?.pages[0].data;
-    return images?.data;
+    const images = data?.pages?.map(({ data }) => data).flat();
+    return images;
   }, [data]);
 
   if (isLoading) {
@@ -50,9 +55,11 @@ export default function Home(): JSX.Element {
         {hasNextPage && (
           <>
             {!isFetchingNextPage ? (
-              <Button onClick={() => fetchNextPage()}>Carregar mais</Button>
+              <Button my="8" onClick={() => fetchNextPage()}>
+                Carregar mais
+              </Button>
             ) : (
-              <Box>Carregando...</Box>
+              <Box my="8">Carregando...</Box>
             )}
           </>
         )}

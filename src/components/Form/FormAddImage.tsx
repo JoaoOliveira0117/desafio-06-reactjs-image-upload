@@ -58,7 +58,7 @@ export function FormAddImage({ closeModal }: FormAddImageProps): JSX.Element {
     },
     {
       onSuccess: () => {
-        queryClient.invalidateQueries('/api/images');
+        queryClient.invalidateQueries('images');
       },
     }
   );
